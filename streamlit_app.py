@@ -422,8 +422,7 @@ else:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant":
                 # 어시스턴트 메시지에 특별한 스타일 적용
-                # 어시스턴트 메시지에 특별한 스타일 적용
-        st.markdown(f'<div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{message["content"]}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{message["content"]}</div>', unsafe_allow_html=True)
             else:
                 # 사용자 메시지
                 st.markdown(f'<div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 1rem; border-radius: 12px;">{message["content"]}</div>', unsafe_allow_html=True)
