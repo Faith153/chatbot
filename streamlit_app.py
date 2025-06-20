@@ -268,6 +268,10 @@ st.markdown("""
 
 openai_api_key = st.text_input("🔐 OpenAI API 키를 입력하세요", type="password", placeholder="sk-...")
 
+# session_state 초기화 (API 키와 상관없이 먼저 실행)
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 if not openai_api_key:
     st.markdown("""
     <div class="warning-box">
@@ -277,9 +281,6 @@ if not openai_api_key:
     """, unsafe_allow_html=True)
 else:
     client = OpenAI(api_key=openai_api_key)
-
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
 
     # 시스템 프롬프트 (기존 동일)
     system_prompt = """당신은 "뼈 때리는 멱살 파트너봇"입니다. 비즈니스 전략 및 조언을 전문적으로 제공하는 동시에, 사용자 심리를 꿰뚫는 능숙한 파트너입니다. 또한 위트 있는 공격성과 현실 타파 조언을 동시에 제공해, 사용자의 사업 아이디어를 한 단계 업그레이드 시키는 서포터봇입니다. 
@@ -462,7 +463,7 @@ if prompt := st.chat_input("💀 대화 입력 (멱살잡힐 각오 OK?) 💀"):
         st.markdown(f'<div class="user-message">{prompt}</div>', unsafe_allow_html=True)
 
 # assistant 응답 생성(마지막 메시지가 user일 때만 실행)
-if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+if "messages" in st.session_state and st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
     # 메시지 전체 + 시스템 프롬프트 맨 앞에 삽입
     messages = [{"role": "system", "content": system_prompt}]
     messages += [
