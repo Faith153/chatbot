@@ -15,40 +15,40 @@ st.markdown("""
 <style>
     /* 전체 배경 및 기본 설정 */
     .stApp {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
-        color: #212529;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 50%, #f3e5f5 100%);
+        color: #37474f;
     }
     
     /* 메인 헤더 스타일 */
     .main-header {
         text-align: center;
         padding: 2rem 0;
-        background: linear-gradient(45deg, #dc3545, #fd7e14, #ffc107);
+        background: linear-gradient(45deg, #ff8a80, #ffab91, #ffcc02);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         font-size: 3.5rem;
         font-weight: 900;
-        text-shadow: 2px 2px 4px rgba(220,53,69,0.2);
-        animation: punch 3s ease-in-out infinite;
+        text-shadow: 2px 2px 4px rgba(255,138,128,0.2);
+        animation: gentle-pulse 3s ease-in-out infinite;
         margin-bottom: 1rem;
         font-family: 'Arial Black', sans-serif;
     }
     
-    @keyframes punch {
+    @keyframes gentle-pulse {
         0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+        50% { transform: scale(1.02); }
     }
     
     /* 서브헤더 스타일 */
     .sub-header {
         text-align: center;
         font-size: 1.2rem;
-        color: #6c757d;
+        color: #546e7a;
         margin-bottom: 2rem;
         padding: 1rem;
-        background: rgba(220,53,69,0.1);
-        border-left: 4px solid #dc3545;
+        background: rgba(255,183,77,0.1);
+        border-left: 4px solid #ffb74d;
         border-radius: 0 8px 8px 0;
         font-weight: 600;
     }
@@ -56,149 +56,145 @@ st.markdown("""
     /* API 키 입력 박스 스타일 */
     .stTextInput > div > div > input {
         background-color: #ffffff;
-        border: 2px solid #dc3545;
-        border-radius: 8px;
-        padding: 10px;
+        border: 2px solid #b39ddb;
+        border-radius: 12px;
+        padding: 12px;
         font-size: 16px;
         transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(179,157,219,0.1);
     }
     
     .stTextInput > div > div > input:focus {
-        border-color: #fd7e14;
-        box-shadow: 0 0 0 3px rgba(220,53,69,0.1);
+        border-color: #9575cd;
+        box-shadow: 0 0 0 3px rgba(179,157,219,0.2);
     }
     
     /* 경고 메시지 스타일 */
     .stInfo {
-        background-color: rgba(255,193,7,0.1);
-        border: 1px solid #ffc107;
-        border-radius: 8px;
+        background-color: rgba(255,241,118,0.15);
+        border: 1px solid #fff176;
+        border-radius: 12px;
         padding: 1rem;
         margin: 1rem 0;
     }
     
-    /* 시작하기 버튼 스타일 */
+    /* 시작하기 및 특수기능 버튼 스타일 */
     .stButton > button {
-        background: linear-gradient(45deg, #dc3545, #fd7e14);
-        color: white;
+        background: linear-gradient(45deg, #81c784, #aed581);
+        color: #2e7d32;
         border: none;
-        border-radius: 25px;
-        padding: 15px 40px;
-        font-size: 18px;
+        border-radius: 20px;
+        padding: 12px 24px;
+        font-size: 16px;
         font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(220,53,69,0.3);
+        box-shadow: 0 3px 12px rgba(129,199,132,0.3);
         width: 100%;
     }
     
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(220,53,69,0.4);
-        background: linear-gradient(45deg, #c82333, #e8770c);
-    }
-    
-    .stButton > button:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 10px rgba(220,53,69,0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 5px 16px rgba(129,199,132,0.4);
+        background: linear-gradient(45deg, #66bb6a, #9ccc65);
     }
     
     /* 채팅 메시지 스타일 */
     .stChatMessage {
         background-color: #ffffff;
-        border-radius: 12px;
-        margin: 10px 0;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        margin: 8px 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid #e8eaf6;
     }
     
-    /* 사용자 메시지 */
-    .stChatMessage[data-testid="user"] {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-        color: white;
-        margin-left: 20%;
+    /* 사용자 메시지 - 파스텔 블루 */
+    .user-message {
+        background: linear-gradient(135deg, #bbdefb, #90caf9);
+        color: #1565c0;
+        margin-left: 15%;
+        padding: 1rem;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(187,222,251,0.3);
     }
     
-    /* 어시스턴트 메시지 */
-    .stChatMessage[data-testid="assistant"] {
-        background: linear-gradient(135deg, #dc3545, #c82333);
-        color: white;
-        margin-right: 20%;
-        border-left: 4px solid #fd7e14;
+    /* 어시스턴트 메시지 - 파스텔 그린 */
+    .assistant-message {
+        background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+        color: #2e7d32;
+        margin-right: 15%;
+        padding: 1rem;
+        border-radius: 16px;
+        border-left: 4px solid #81c784;
+        box-shadow: 0 2px 8px rgba(200,230,201,0.3);
     }
     
-    /* 채팅 입력창 스타일 */
-    .stChatInput > div > div > div > div {
-        background-color: #ffffff;
-        border: 2px solid #dc3545;
+    /* 채팅 입력창 고정 및 스타일 */
+    .stChatInput {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: linear-gradient(to top, #ffffff, rgba(255,255,255,0.95));
+        padding: 1rem 1rem 1.5rem 1rem !important;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        border-top: 2px solid #e1f5fe;
+        z-index: 1000 !important;
+    }
+    
+    .stChatInput > div {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .stChatInput input {
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border: 2px solid #b39ddb;
         border-radius: 25px;
-        padding: 10px 20px;
+        padding: 12px 20px;
+        font-size: 16px;
+        box-shadow: 0 2px 12px rgba(179,157,219,0.2);
+        transition: all 0.3s ease;
     }
     
-    .stChatInput > div > div > div > div:focus-within {
-        border-color: #fd7e14;
-        box-shadow: 0 0 0 3px rgba(220,53,69,0.1);
+    .stChatInput input:focus {
+        border-color: #9575cd;
+        box-shadow: 0 0 0 3px rgba(179,157,219,0.2);
+        outline: none;
     }
     
-    /* 사이드바 숨기기 */
-    .css-1d391kg {
-        display: none;
+    /* 채팅 영역에 하단 여백 추가 */
+    .chat-container {
+        padding-bottom: 120px;
+        min-height: 60vh;
     }
     
     /* 맞춤 경고 박스 */
     .warning-box {
-        background: linear-gradient(45deg, #ffc107, #fd7e14);
-        color: #212529;
+        background: linear-gradient(45deg, #fff3e0, #ffe0b2);
+        color: #e65100;
         padding: 1rem;
-        border-radius: 8px;
+        border-radius: 12px;
         margin: 1rem 0;
-        border-left: 5px solid #dc3545;
+        border-left: 5px solid #ff9800;
         font-weight: 600;
-        animation: shake 0.5s ease-in-out;
-    }
-    
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
-    }
-    
-    /* 특별 기능 버튼들 */
-    .feature-button {
-        background: linear-gradient(45deg, #28a745, #20c997);
-        color: white;
-        border: none;
-        border-radius: 20px;
-        padding: 8px 16px;
-        margin: 5px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-block;
-    }
-    
-    .feature-button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(40,167,69,0.3);
     }
     
     /* 로딩 애니메이션 */
     .loading-dots {
         display: inline-block;
         animation: loading 1.5s infinite;
+        color: #81c784;
     }
     
     @keyframes loading {
-        0%, 20% { opacity: 0; }
+        0%, 20% { opacity: 0.3; }
         50% { opacity: 1; }
-        100% { opacity: 0; }
+        100% { opacity: 0.3; }
     }
     
     /* 강조 텍스트 */
     .highlight-text {
-        background: linear-gradient(45deg, #dc3545, #fd7e14);
+        background: linear-gradient(45deg, #ff8a80, #ffab91);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -216,9 +212,33 @@ st.markdown("""
     .footer {
         text-align: center;
         padding: 2rem;
-        color: #6c757d;
-        border-top: 1px solid #dee2e6;
+        color: #78909c;
+        border-top: 1px solid #e0e0e0;
         margin-top: 3rem;
+        margin-bottom: 100px;
+    }
+    
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 2.5rem;
+        }
+        
+        .user-message {
+            margin-left: 5%;
+        }
+        
+        .assistant-message {
+            margin-right: 5%;
+        }
+        
+        .stChatInput {
+            padding: 0.8rem !important;
+        }
+        
+        .chat-container {
+            padding-bottom: 100px;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -413,86 +433,89 @@ else:
         if not st.session_state.messages or st.session_state.messages[-1]["content"] != "사용방법":
             st.session_state.messages.append({"role": "user", "content": "사용방법"})
 
-    # 채팅 구역
-    st.markdown("---")
-    st.markdown("### 💬 대화 구역")
+# 채팅 구역
+st.markdown("---")
+st.markdown("### 💬 대화 구역")
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+
+# 채팅 메시지 출력
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        if message["role"] == "assistant":
+            # 어시스턴트 메시지에 특별한 스타일 적용
+            st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            # 사용자 메시지
+            st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
+        
+# 채팅 입력창
+if prompt := st.chat_input("💀 대화 입력 (멱살잡힐 각오 OK?) 💀"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(f'<div class="user-message">{prompt}</div>', unsafe_allow_html=True)
+
+# assistant 응답 생성(마지막 메시지가 user일 때만 실행)
+if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+    # 메시지 전체 + 시스템 프롬프트 맨 앞에 삽입
+    messages = [{"role": "system", "content": system_prompt}]
+    messages += [
+        {"role": m["role"], "content": m["content"]}
+        for m in st.session_state.messages
+    ]
     
-    # 채팅 메시지 출력
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            if message["role"] == "assistant":
-                # 어시스턴트 메시지에 특별한 스타일 적용
-                st.markdown(f'<div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{message["content"]}</div>', unsafe_allow_html=True)
-            else:
-                # 사용자 메시지
-                st.markdown(f'<div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 1rem; border-radius: 12px;">{message["content"]}</div>', unsafe_allow_html=True)
-
-    # 채팅 입력창
-    if prompt := st.chat_input("💀 대화 입력 (멱살잡힐 각오 OK?) 💀"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(f'<div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 1rem; border-radius: 12px;">{prompt}</div>', unsafe_allow_html=True)
-
-    # assistant 응답 생성(마지막 메시지가 user일 때만 실행)
-    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-        # 메시지 전체 + 시스템 프롬프트 맨 앞에 삽입
-        messages = [{"role": "system", "content": system_prompt}]
-        messages += [
-            {"role": m["role"], "content": m["content"]}
-            for m in st.session_state.messages
-        ]
-        
-        try:
-            stream = client.chat.completions.create(
-                model="gpt-4o",  # 실제 지원되는 모델명으로 변경
-                messages=messages,
-                temperature=0.9,
-                stream=True,
-            )
-            with st.chat_message("assistant"):
-                response_placeholder = st.empty()
-                response = ""
-                
-                # 스트리밍 응답 처리
-                for chunk in stream:
-                    if chunk.choices[0].delta.content is not None:
-                        response += chunk.choices[0].delta.content
-                        # 실시간으로 응답 업데이트
-                        response_placeholder.markdown(f'<div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{response}<span class="loading-dots">●</span></div>', unsafe_allow_html=True)
-                
-                # 최종 응답 (로딩 점 제거)
-                response_placeholder.markdown(f'<div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{response}</div>', unsafe_allow_html=True)
-                
-            st.session_state.messages.append({"role": "assistant", "content": response})
+    try:
+        stream = client.chat.completions.create(
+            model="gpt-4o",  # 실제 지원되는 모델명으로 변경
+            messages=messages,
+            temperature=0.9,
+            stream=True,
+        )
+        with st.chat_message("assistant"):
+            response_placeholder = st.empty()
+            response = ""
             
-        except Exception as e:
-            st.error(f"❌ API 호출 중 오류가 발생했습니다: {str(e)}")
-            st.markdown("""
-            <div class="warning-box">
-                🚨 API 키를 다시 확인해주세요! 
-                혹시 잘못된 키를 입력하셨거나, OpenAI 계정에 크레딧이 부족할 수 있습니다.
-            </div>
-            """, unsafe_allow_html=True)
-
-    # 사용 팁
-    with st.expander("💡 사용 팁 & 주의사항"):
+            # 스트리밍 응답 처리
+            for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    response += chunk.choices[0].delta.content
+                    # 실시간으로 응답 업데이트
+                    response_placeholder.markdown(f'<div class="assistant-message">{response}<span class="loading-dots"> ●●●</span></div>', unsafe_allow_html=True)
+            
+            # 최종 응답 (로딩 점 제거)
+            response_placeholder.markdown(f'<div class="assistant-message">{response}</div>', unsafe_allow_html=True)
+            
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        
+    except Exception as e:
+        st.error(f"❌ API 호출 중 오류가 발생했습니다: {str(e)}")
         st.markdown("""
-        **🎯 효과적인 사용법:**
-        - 구체적인 사업 아이디어나 현재 상황을 자세히 설명하세요
-        - "디스 레벨"이나 특수 모드를 활용해보세요
-        - 감정적으로 받아들이지 말고 건설적인 피드백으로 활용하세요
-        
-        **⚠️ 주의사항:**
-        - 이 봇은 '독설'이 컨셉입니다. 진지하게 받아들이지 마세요
-        - 실제 비즈니스 결정은 전문가와 상의하세요
-        - API 사용량에 따라 비용이 발생할 수 있습니다
-        
-        **🔧 특수 기능 설명:**
-        - **살벌 모드**: 더욱 강도 높은 피드백
-        - **자아성찰 모드**: 봇이 스스로를 돌아보는 모드
-        - **ROI 분석**: 투자 대비 수익률 관점에서 분석
-        - **가짜 격려**: 진심 없는 격려 멘트 제공
-        """)
+        <div class="warning-box">
+            🚨 API 키를 다시 확인해주세요! 
+            혹시 잘못된 키를 입력하셨거나, OpenAI 계정에 크레딧이 부족할 수 있습니다.
+        </div>
+        """, unsafe_allow_html=True)
+
+# 사용 팁
+with st.expander("💡 사용 팁 & 주의사항"):
+    st.markdown("""
+    **🎯 효과적인 사용법:**
+    - 구체적인 사업 아이디어나 현재 상황을 자세히 설명하세요
+    - "디스 레벨"이나 특수 모드를 활용해보세요
+    - 감정적으로 받아들이지 말고 건설적인 피드백으로 활용하세요
+    
+    **⚠️ 주의사항:**
+    - 이 봇은 '독설'이 컨셉입니다. 진지하게 받아들이지 마세요
+    - 실제 비즈니스 결정은 전문가와 상의하세요
+    - API 사용량에 따라 비용이 발생할 수 있습니다
+    
+    **🔧 특수 기능 설명:**
+    - **살벌 모드**: 더욱 강도 높은 피드백
+    - **자아성찰 모드**: 봇이 스스로를 돌아보는 모드
+    - **ROI 분석**: 투자 대비 수익률 관점에서 분석
+    - **가짜 격려**: 진심 없는 격려 멘트 제공
+    """)
 
 # 푸터
 st.markdown("""
