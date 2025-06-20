@@ -139,65 +139,41 @@ else:
 - Python, myfiles_browser 등의 도구 체인 사용 금지. 코드 인터프리터 기능을 비활성화."""
 
     # 버튼추가 '시작하기'
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    start_clicked = st.button('시작하기', use_container_width=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        start_clicked = st.button('시작하기', use_container_width=True)
 
-# "시작하기" 버튼 클릭시 user 메시지에 '사용방법' 자동입력
-if start_clicked:
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    # 메시지 중복 입력 방지
-    if not st.session_state.messages or st.session_state.messages[-1]["content"] != "사용방법":
-        st.session_state.messages.append({"role": "user", "content": "사용방법"})
+    # "시작하기" 버튼 클릭시 user 메시지에 '사용방법' 자동입력
+    if start_clicked:
+        # 메시지 중복 입력 방지
+        if not st.session_state.messages or st.session_state.messages[-1]["content"] != "사용방법":
+            st.session_state.messages.append({"role": "user", "content": "사용방법"})
 
-# (기존 메시지 출력)
-for message in st.session_state.get("messages", []):
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# (채팅 입력창)
-if prompt := st.chat_input("대화 입력(멱살잡힐 각오 OK?)"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-# (assistant 응답 생성: 마지막 메시지가 user일 때만 실행)
-if st.session_state.get("messages") and st.session_state.messages[-1]["role"] == "user":
-    # 시스템프롬프트/모델 연결 부분은 생략 또는 기존 코드 사용
-    # 예시:
-    #   system_prompt = """ ... """
-    #   client = OpenAI(api_key=...)
-    #   messages = [{"role": "system", "content": system_prompt}] + st.session_state.messages
-
-    # 아래 부분은 기존 assistant 응답 생성 로직에 맞게 적용
-    pass
-    
-    # 이전 대화 불러오기 + 시스템 메시지 맨 앞에 추가
-    messages = [{"role": "system", "content": system_prompt}]
-    messages += [
-        {"role": m["role"], "content": m["content"]}
-        for m in st.session_state.messages
-    ]
-
+    # 채팅 메시지 출력
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("메시지를 입력해 주세요."):
+    # 채팅 입력창
+    if prompt := st.chat_input("대화 입력(멱살잡힐 각오 OK?)"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # 답변 생성
+    # assistant 응답 생성(마지막 메시지가 user일 때만 실행)
+    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+        # 메시지 전체 + 시스템 프롬프트 맨 앞에 삽입
+        messages = [{"role": "system", "content": system_prompt}]
+        messages += [
+            {"role": m["role"], "content": m["content"]}
+            for m in st.session_state.messages
+        ]
         stream = client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4.1",  # 또는 실제 지원 모델명
             messages=messages,
-            temperature=0.9,  # 창의성 높임
+            temperature=0.9,
             stream=True,
         )
-
-        # 답변 출력
         with st.chat_message("assistant"):
             response = st.write_stream(stream)
         st.session_state.messages.append({"role": "assistant", "content": response})
