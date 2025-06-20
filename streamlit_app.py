@@ -1,9 +1,9 @@
-import streamlit as st
+fuimport streamlit as st
 from openai import OpenAI
 
-st.title("FaithFam-Chatbot")
+st.title("뼈 때려주는 멱살 파트너봇")
 st.write(
-    "뼈 때려주는 멱살 파트너봇"
+    "위트 있는 공격성과 현실 타파 조언을 동시에 제공해, 당신의 아이디어를 멱살 잡고 한 단계 업그레이드시키는 서포터봇"
     "이 앱을 사용하려면 OpenAI API 키가 필요합니다. [여기](https://platform.openai.com/account/api-keys)에서 API 키를 발급받을 수 있습니다. "
     "이 앱을 단계별로 직접 만들어보고 싶으시다면 [이 튜토리얼](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)을 참고하세요."
 )
