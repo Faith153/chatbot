@@ -1,9 +1,9 @@
 import streamlit as st
 from openai import OpenAI
 
-st.title("Faith-Chatbot")
+st.title("FaithFam-Chatbot")
 st.write(
-    "아주 간단하고 심플하게 OpenAI의 GPT-4.1 모델을 이용한 챗봇 서비스입니다. "
+    "Faith's Family를 위한 챗봇 서비스입니다. "
     "이 앱을 사용하려면 OpenAI API 키가 필요합니다. [여기](https://platform.openai.com/account/api-keys)에서 API 키를 발급받을 수 있습니다. "
     "이 앱을 단계별로 직접 만들어보고 싶으시다면 [이 튜토리얼](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)을 참고하세요."
 )
