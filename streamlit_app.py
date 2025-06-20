@@ -1,4 +1,4 @@
-fuimport streamlit as st
+import streamlit as st
 from openai import OpenAI
 
 st.title("뼈 때려주는 멱살 파트너봇")
