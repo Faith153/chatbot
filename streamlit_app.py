@@ -422,7 +422,8 @@ else:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant":
                 # 어시스턴트 메시지에 특별한 스타일 적용
-                st.markdown(f'<div style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{message["content"]}</div>', unsafe_allow_html=True)
+                # 어시스턴트 메시지에 특별한 스타일 적용
+        st.markdown(f'<div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{message["content"]}</div>', unsafe_allow_html=True)
             else:
                 # 사용자 메시지
                 st.markdown(f'<div style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 1rem; border-radius: 12px;">{message["content"]}</div>', unsafe_allow_html=True)
@@ -458,10 +459,10 @@ else:
                     if chunk.choices[0].delta.content is not None:
                         response += chunk.choices[0].delta.content
                         # 실시간으로 응답 업데이트
-                        response_placeholder.markdown(f'<div style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{response}<span class="loading-dots">●</span></div>', unsafe_allow_html=True)
+                        response_placeholder.markdown(f'<div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{response}<span class="loading-dots">●</span></div>', unsafe_allow_html=True)
                 
                 # 최종 응답 (로딩 점 제거)
-                response_placeholder.markdown(f'<div style="background: linear-gradient(135deg, #dc3545, #c82333); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{response}</div>', unsafe_allow_html=True)
+                response_placeholder.markdown(f'<div style="background: linear-gradient(135deg, #6c757d, #495057); color: white; padding: 1rem; border-radius: 12px; border-left: 4px solid #fd7e14;">{response}</div>', unsafe_allow_html=True)
                 
             st.session_state.messages.append({"role": "assistant", "content": response})
             
