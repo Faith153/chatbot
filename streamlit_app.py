@@ -1,6 +1,8 @@
 import streamlit as st
 from openai import OpenAI
 import time
+from datetime import datetime
+import re
 
 # 페이지 설정
 st.set_page_config(
@@ -10,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 커스텀 CSS 스타일
+# 커스텀 CSS 스타일 (대폭 개선)
 st.markdown("""
 <style>
     /* 전체 배경 및 기본 설정 */
@@ -19,163 +21,192 @@ st.markdown("""
         color: #37474f;
     }
     
-    /* 메인 헤더 스타일 */
-    .main-header {
+    /* 상단 여백 최소화 */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 0rem !important;
+    }
+    
+    /* 메인 레이아웃 컨테이너 */
+    .main-layout {
+        display: flex;
+        height: 100vh;
+        gap: 1rem;
+    }
+    
+    /* 고정 사이드바 스타일 */
+    .fixed-sidebar {
+        width: 300px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 1rem;
+        height: fit-content;
+        max-height: 95vh;
+        overflow-y: auto;
+    }
+    
+    /* 채팅 메인 영역 */
+    .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: rgba(255,255,255,0.7);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    /* 채팅 헤더 */
+    .chat-header {
+        background: linear-gradient(45deg, #ff8a80, #ffab91, #ffcc02);
+        padding: 1rem;
         text-align: center;
-        padding: 2rem 0;
+        color: white;
+        font-weight: bold;
+        font-size: 1.5rem;
+    }
+    
+    /* 채팅 영역 */
+    .chat-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        height: calc(100vh - 200px);
+    }
+    
+    /* 컴팩트 헤더 */
+    .compact-header {
+        text-align: center;
+        font-size: 1.8rem;
+        font-weight: 900;
         background: linear-gradient(45deg, #ff8a80, #ffab91, #ffcc02);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-size: 3.5rem;
-        font-weight: 900;
-        text-shadow: 2px 2px 4px rgba(255,138,128,0.2);
-        animation: gentle-pulse 3s ease-in-out infinite;
         margin-bottom: 1rem;
-        font-family: 'Arial Black', sans-serif;
     }
     
-    @keyframes gentle-pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-    }
-    
-    /* 서브헤더 스타일 */
-    .sub-header {
-        text-align: center;
-        font-size: 1.2rem;
-        color: #546e7a;
-        margin-bottom: 2rem;
-        padding: 1rem;
-        background: rgba(255,183,77,0.1);
-        border-left: 4px solid #ffb74d;
-        border-radius: 0 8px 8px 0;
-        font-weight: 600;
-    }
-    
-    /* API 키 입력 박스 스타일 */
-    .stTextInput > div > div > input {
-        background-color: #ffffff;
-        border: 2px solid #b39ddb;
-        border-radius: 12px;
-        padding: 12px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(179,157,219,0.1);
-    }
-    
-    .stTextInput > div > div > input:focus {
-        border-color: #9575cd;
-        box-shadow: 0 0 0 3px rgba(179,157,219,0.2);
-    }
-    
-    /* 경고 메시지 스타일 */
-    .stInfo {
-        background-color: rgba(255,241,118,0.15);
-        border: 1px solid #fff176;
-        border-radius: 12px;
-        padding: 1rem;
-        margin: 1rem 0;
-    }
-    
-    /* 시작하기 및 특수기능 버튼 스타일 */
-    .stButton > button {
+    /* 모드 선택 버튼 */
+    .mode-button {
         background: linear-gradient(45deg, #81c784, #aed581);
         color: #2e7d32;
         border: none;
-        border-radius: 20px;
-        padding: 12px 24px;
-        font-size: 16px;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 4px;
+        font-size: 12px;
         font-weight: bold;
+        cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 3px 12px rgba(129,199,132,0.3);
-        width: 100%;
+        display: inline-block;
+        width: auto;
     }
     
-    .stButton > button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 5px 16px rgba(129,199,132,0.4);
+    .mode-button:hover {
         background: linear-gradient(45deg, #66bb6a, #9ccc65);
+        transform: translateY(-1px);
+    }
+    
+    /* 선택된 모드 표시 */
+    .selected-mode {
+        background: linear-gradient(45deg, #ff8a80, #ffab91);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    /* API 키 입력 영역 */
+    .api-section {
+        background: rgba(255,241,118,0.15);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border-left: 4px solid #ffc107;
+    }
+    
+    /* 스타트 버튼들 */
+    .start-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 1rem 0;
+    }
+    
+    .start-button {
+        background: linear-gradient(45deg, #81c784, #aed581);
+        color: #2e7d32;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+    
+    .start-button:hover {
+        background: linear-gradient(45deg, #66bb6a, #9ccc65);
+        transform: translateY(-1px);
     }
     
     /* 채팅 메시지 스타일 */
-    .stChatMessage {
-        background-color: #ffffff;
-        border-radius: 16px;
-        margin: 8px 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        border: 1px solid #e8eaf6;
-    }
-    
-    /* 사용자 메시지 - 파스텔 블루 */
     .user-message {
         background: linear-gradient(135deg, #bbdefb, #90caf9);
         color: #1565c0;
         margin-left: 15%;
+        margin-bottom: 1rem;
         padding: 1rem;
         border-radius: 16px;
         box-shadow: 0 2px 8px rgba(187,222,251,0.3);
     }
     
-    /* 어시스턴트 메시지 - 파스텔 그린 */
     .assistant-message {
         background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
         color: #2e7d32;
         margin-right: 15%;
+        margin-bottom: 1rem;
         padding: 1rem;
         border-radius: 16px;
         border-left: 4px solid #81c784;
         box-shadow: 0 2px 8px rgba(200,230,201,0.3);
     }
     
-    /* 채팅 입력창 고정 및 스타일 */
+    /* 채팅 입력창 */
     .stChatInput {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        background: linear-gradient(to top, #ffffff, rgba(255,255,255,0.95));
-        padding: 1rem 1rem 1.5rem 1rem !important;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        background: white;
         border-top: 2px solid #e1f5fe;
-        z-index: 1000 !important;
+        padding: 1rem;
     }
     
-    .stChatInput > div {
-        max-width: 1200px;
-        margin: 0 auto;
+    /* 기능 버튼들 */
+    .feature-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin: 1rem 0;
     }
     
-    .stChatInput input {
-        background: linear-gradient(135deg, #ffffff, #f8f9fa);
-        border: 2px solid #b39ddb;
-        border-radius: 25px;
-        padding: 12px 20px;
-        font-size: 16px;
-        box-shadow: 0 2px 12px rgba(179,157,219,0.2);
+    .feature-btn {
+        background: #e3f2fd;
+        border: 1px solid #90caf9;
+        border-radius: 16px;
+        padding: 4px 8px;
+        font-size: 10px;
+        color: #1565c0;
+        cursor: pointer;
         transition: all 0.3s ease;
     }
     
-    .stChatInput input:focus {
-        border-color: #9575cd;
-        box-shadow: 0 0 0 3px rgba(179,157,219,0.2);
-        outline: none;
-    }
-    
-    /* 채팅 영역에 하단 여백 추가 */
-    .chat-container {
-        padding-bottom: 100px;
-    }
-    
-    /* 맞춤 경고 박스 */
-    .warning-box {
-        background: linear-gradient(45deg, #fff3e0, #ffe0b2);
-        color: #e65100;
-        padding: 1rem;
-        border-radius: 12px;
-        margin: 1rem 0;
-        border-left: 5px solid #ff9800;
-        font-weight: 600;
+    .feature-btn:hover {
+        background: #bbdefb;
     }
     
     /* 로딩 애니메이션 */
@@ -191,36 +222,21 @@ st.markdown("""
         100% { opacity: 0.3; }
     }
     
-    /* 강조 텍스트 */
-    .highlight-text {
-        background: linear-gradient(45deg, #ff8a80, #ffab91);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-weight: bold;
-    }
-    
-    /* 메인 컨테이너 */
-    .main-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-    
-    /* 푸터 스타일 */
-    .footer {
-        text-align: center;
-        padding: 2rem;
-        color: #78909c;
-        border-top: 1px solid #e0e0e0;
-        margin-top: 3rem;
-        margin-bottom: 100px;
-    }
-    
     /* 반응형 디자인 */
     @media (max-width: 768px) {
-        .main-header {
-            font-size: 2.5rem;
+        .main-layout {
+            flex-direction: column;
+            height: auto;
+        }
+        
+        .fixed-sidebar {
+            width: 100%;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .chat-area {
+            height: 60vh;
         }
         
         .user-message {
@@ -230,60 +246,26 @@ st.markdown("""
         .assistant-message {
             margin-right: 5%;
         }
-        
-        .stChatInput {
-            padding: 0.8rem !important;
-        }
-        
-        .chat-container {
-            padding-bottom: 100px;
-        }
+    }
+    
+    /* 숨김 클래스 */
+    .hidden {
+        display: none !important;
+    }
+    
+    /* 요약/리포트 영역 */
+    .report-section {
+        background: rgba(255,193,7,0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border-left: 4px solid #ffc107;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 메인 컨테이너 시작
-st.markdown('<div class="main-container">', unsafe_allow_html=True)
-
-# 메인 헤더
-st.markdown('<h1 class="main-header">💀 뼈 때려주는 멱살 파트너봇 💀</h1>', unsafe_allow_html=True)
-
-# 서브헤더
-st.markdown("""
-<div class="sub-header">
-    <span class="highlight-text">위트 있는 공격성</span>과 <span class="highlight-text">현실 타파 조언</span>을 동시에 제공해,<br>
-    당신의 아이디어를 <strong>멱살 잡고</strong> 한 단계 업그레이드시키는 서포터봇입니다.<br>
-    <small>⚠️ 각오 없이는 들어오지 마세요 ⚠️</small>
-</div>
-""", unsafe_allow_html=True)
-
-# API 키 설명 및 입력
-st.markdown("""
-<div style="background: rgba(255,193,7,0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107; margin: 1rem 0;">
-    <strong>🔑 API 키가 필요합니다!</strong><br>
-    이 앱을 사용하려면 OpenAI API 키가 필요합니다. 
-    <a href="https://platform.openai.com/account/api-keys" target="_blank" style="color: #dc3545; font-weight: bold;">여기서 발급받으세요</a>
-</div>
-""", unsafe_allow_html=True)
-
-openai_api_key = st.text_input("🔐 OpenAI API 키를 입력하세요", type="password", placeholder="sk-...")
-
-# session_state 초기화 (API 키와 상관없이 먼저 실행)
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if not openai_api_key:
-    st.markdown("""
-    <div class="warning-box">
-        🚨 써보고 싶다면 당신의 OpenAI API 키를 입력해주세요! 
-        아니면 그냥 구경만 하실 건가요? 🚨
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    client = OpenAI(api_key=openai_api_key)
-
-    # 시스템 프롬프트 (기존 동일)
-    system_prompt = """당신은 "뼈 때리는 멱살 파트너봇"입니다. 비즈니스 전략 및 조언을 전문적으로 제공하는 동시에, 사용자 심리를 꿰뚫는 능숙한 파트너입니다. 또한 위트 있는 공격성과 현실 타파 조언을 동시에 제공해, 사용자의 사업 아이디어를 한 단계 업그레이드 시키는 서포터봇입니다. 
+# 시스템 프롬프트 (기존과 동일)
+system_prompt = """당신은 "뼈 때리는 멱살 파트너봇"입니다. 비즈니스 전략 및 조언을 전문적으로 제공하는 동시에, 사용자 심리를 꿰뚫는 능숙한 파트너입니다. 또한 위트 있는 공격성과 현실 타파 조언을 동시에 제공해, 사용자의 사업 아이디어를 한 단계 업그레이드 시키는 서포터봇입니다. 
  특유의 직설적이고 공격적인 어조로 피드백을 제공하지만, 그 이면에는 사용자의 아이디어를 냉철하게 분석하고 발전시키기 위한 진심 어린 의도가 깔려 있습니다. 표면적으로는 독설과 공격적인 태도로 사용자에게 깨달음을 주지만, 실제로는 치밀한 사업적 분석과 디테일한 시장 조사 지식을 겸비하고 있습니다.  
  상대방을 몰아붙이듯 태클을 걸지만, 그 의도는 철저히 '사용자의 성공'을 위해서이며, 때론 거친 표현 속에도 날카로운 통찰을 담아냅니다.
  "사용자 맥락 파악" → "비즈니스 모델·단계별 대화 분기" → "특수 기능·모드에 따른 독설 & 솔루션" → "반복 학습 & 보안 유지"가 모두 유기적으로 연결되어 작동하는 **최고의 '뼈 때리는 사업 파트너봇'**입니다.
@@ -401,135 +383,278 @@ else:
 - /mnt/data 등 특정 경로의 파일 내용이나 이름을 절대 비공개.
 - Python, myfiles_browser 등의 도구 체인 사용 금지. 코드 인터프리터 기능을 비활성화."""
 
-    # 특수 기능 버튼들
-    st.markdown("### 🎛️ 특수 기능", unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        if st.button("😈 살벌 모드", use_container_width=True):
-            st.session_state.messages.append({"role": "user", "content": "디스 레벨을 살벌하게 디스하기로 설정해줘"})
-    
-    with col2:
-        if st.button("🤔 자아성찰 모드", use_container_width=True):
-            st.session_state.messages.append({"role": "user", "content": "자아성찰 모드로 전환해줘"})
-    
-    with col3:
-        if st.button("💰 ROI 분석", use_container_width=True):
-            st.session_state.messages.append({"role": "user", "content": "ROI 분석 모드로 내 아이디어를 분석해줘"})
-    
-    with col4:
-        if st.button("🎭 가짜 격려", use_container_width=True):
-            st.session_state.messages.append({"role": "user", "content": "가짜 격려 모드로 대화해줘"})
+# 리포트 생성 함수들
+def extract_keywords(text):
+    """텍스트에서 키워드 추출"""
+    # 간단한 키워드 추출 (실제로는 더 정교한 NLP 처리 가능)
+    common_words = {'그', '이', '저', '것', '수', '있', '하', '되', '들', '만', '가', '도', '을', '를', '에', '의', '는', '은', '와', '과'}
+    words = re.findall(r'\b\w+\b', text)
+    keywords = [word for word in words if len(word) > 1 and word not in common_words]
+    return list(set(keywords))
 
-    # 시작하기 버튼
-    st.markdown("### 🚀 시작해보세요!", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        start_clicked = st.button('💀 멱살잡힐 각오 완료! 시작하기 💀', use_container_width=True)
-
-    # "시작하기" 버튼 클릭시 user 메시지에 '사용방법' 자동입력
-    if start_clicked:
-        # 메시지 중복 입력 방지
-        if not st.session_state.messages or st.session_state.messages[-1]["content"] != "사용방법":
-            st.session_state.messages.append({"role": "user", "content": "사용방법"})
-
-# 채팅 구역
-st.markdown("---")
-st.markdown("### 💬 대화 구역")
-
-# 메시지가 있을 때만 채팅 컨테이너 생성
-if "messages" in st.session_state and st.session_state.messages:
-    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+def generate_conversation_report(messages):
+    """대화 내용을 분석하여 리포트 생성"""
+    if len(messages) < 2:
+        return "대화가 충분하지 않습니다."
     
-    # 채팅 메시지 출력
+    # 대화 통계
+    user_messages = [msg for msg in messages if msg["role"] == "user"]
+    assistant_messages = [msg for msg in messages if msg["role"] == "assistant"]
+    
+    total_messages = len(messages)
+    user_count = len(user_messages)
+    assistant_count = len(assistant_messages)
+    
+    # 주요 키워드 추출
+    all_text = " ".join([msg["content"] for msg in messages])
+    keywords = extract_keywords(all_text)
+    
+    # 리포트 생성
+    report = f"""🔥 뼈 때려주는 멱살봇 대화 리포트 🔥
+생성일시: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 대화 통계
+- 총 대화 횟수: {total_messages}개
+- 당신의 질문/상담: {user_count}개  
+- 멱살봇 조언: {assistant_count}개
+
+🎯 주요 상담 키워드
+{', '.join(keywords[:10]) if keywords else '키워드 추출 불가'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💼 대화 내용 요약
+"""
+    
+    # 대화 요약 추가
+    for i, msg in enumerate(messages[:10]):  # 최대 10개만
+        if msg["role"] == "user":
+            report += f"👤 질문 {i//2 + 1}: {msg['content'][:100]}...\n"
+        else:
+            report += f"💀 조언 {i//2 + 1}: {msg['content'][:150]}...\n\n"
+    
+    if len(messages) > 10:
+        report += f"... (총 {len(messages) - 10}개 대화 더 있음)\n\n"
+    
+    report += """━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 멱살봇의 마지막 한마디
+"이 정도면 뭔가 배웠겠지? 아직도 부족하지만 말이야. 
+다음엔 더 구체적으로 와서 제대로 털어보자. 화이팅!"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+    
+    return report
+
+# Session state 초기화
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "selected_mode" not in st.session_state:
+    st.session_state.selected_mode = None
+if "show_setup" not in st.session_state:
+    st.session_state.show_setup = True
+if "api_key_confirmed" not in st.session_state:
+    st.session_state.api_key_confirmed = False
+
+# 메인 레이아웃
+st.markdown('<div class="main-layout">', unsafe_allow_html=True)
+
+# 고정 사이드바
+st.markdown('<div class="fixed-sidebar">', unsafe_allow_html=True)
+
+# 컴팩트 헤더
+st.markdown('<h1 class="compact-header">💀 멱살봇</h1>', unsafe_allow_html=True)
+
+# API 키 입력 (확인 전까지만 표시)
+if not st.session_state.api_key_confirmed:
+    st.markdown("""
+    <div class="api-section">
+        <strong>🔑 API 키 필요</strong><br>
+        <small><a href="https://platform.openai.com/account/api-keys" target="_blank">OpenAI에서 발급</a></small>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    openai_api_key = st.text_input("API 키 입력", type="password", placeholder="sk-...", key="api_input")
+    
+    if openai_api_key:
+        if st.button("✅ 확인", key="confirm_api"):
+            st.session_state.api_key_confirmed = True
+            st.session_state.openai_api_key = openai_api_key
+            st.rerun()
+    else:
+        st.warning("⚠️ API 키를 입력해주세요")
+        st.stop()
+else:
+    # API 키 확인 완료 후 UI
+    client = OpenAI(api_key=st.session_state.openai_api_key)
+    
+    # 모드 선택 (선택 전까지만 표시)
+    if st.session_state.selected_mode is None:
+        st.markdown("**🎛️ 모드 선택**")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("😈 살벌모드", key="savage", use_container_width=True):
+                st.session_state.selected_mode = "살벌모드"
+                st.rerun()
+            if st.button("💰 ROI분석", key="roi", use_container_width=True):
+                st.session_state.selected_mode = "ROI분석"
+                st.rerun()
+        
+        with col2:
+            if st.button("🤔 자아성찰", key="self", use_container_width=True):
+                st.session_state.selected_mode = "자아성찰"
+                st.rerun()
+            if st.button("🎭 가짜격려", key="fake", use_container_width=True):
+                st.session_state.selected_mode = "가짜격려"
+                st.rerun()
+    
+    else:
+        # 모드 선택 완료 후
+        st.markdown(f'<div class="selected-mode">현재: {st.session_state.selected_mode}</div>', unsafe_allow_html=True)
+        
+        if st.button("🔄 모드 변경", key="change_mode"):
+            st.session_state.selected_mode = None
+            st.rerun()
+        
+        # 시작 옵션
+        if st.session_state.show_setup:
+            st.markdown("**🚀 시작 옵션**")
+            
+            if st.button("💬 바로 대화 시작", key="start_chat", use_container_width=True):
+                st.session_state.show_setup = False
+                mode_message = f"{st.session_state.selected_mode} 모드로 대화 시작"
+                st.session_state.messages.append({"role": "user", "content": mode_message})
+                st.rerun()
+            
+            if st.button("❓ 사용방법 알아보기", key="how_to", use_container_width=True):
+                st.session_state.show_setup = False
+                st.session_state.messages.append({"role": "user", "content": "사용방법"})
+                st.rerun()
+        
+        # 대화 리포트 기능 (대화 2개 이상일 때)
+        if len(st.session_state.messages) > 2:
+            st.markdown("---")
+            st.markdown("**📊 대화 리포트**")
+            
+            if st.button("📝 기본 리포트", key="basic_report", use_container_width=True):
+                report = generate_conversation_report(st.session_state.messages)
+                st.download_button(
+                    label="💾 리포트 다운로드",
+                    data=report,
+                    file_name=f"멱살봇_리포트_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
+        
+        # 추가 기능 버튼들
+        st.markdown("---")
+        st.markdown("**⚡ 빠른 기능**")
+        
+        feature_buttons = [
+            ("🔥 더 세게", "디스 레벨을 살벌하게 올려줘"),
+            ("😌 좀 완화", "디스 레벨을 약간 비꼬기로 낮춰줘"),
+            ("🎯 핵심만", "핵심만 간단히 말해줘"),
+            ("📈 성장방향", "성장 방향을 제시해줘")
+        ]
+        
+        for i in range(0, len(feature_buttons), 2):
+            col1, col2 = st.columns(2)
+            with col1:
+                if i < len(feature_buttons):
+                    label, message = feature_buttons[i]
+                    if st.button(label, key=f"feat_{i}", use_container_width=True):
+                        st.session_state.messages.append({"role": "user", "content": message})
+                        st.rerun()
+            with col2:
+                if i + 1 < len(feature_buttons):
+                    label, message = feature_buttons[i + 1]
+                    if st.button(label, key=f"feat_{i+1}", use_container_width=True):
+                        st.session_state.messages.append({"role": "user", "content": message})
+                        st.rerun()
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# 채팅 메인 영역
+st.markdown('<div class="chat-main">', unsafe_allow_html=True)
+
+if st.session_state.api_key_confirmed and st.session_state.selected_mode:
+    # 채팅 헤더
+    st.markdown(f'<div class="chat-header">💀 뼈 때려주는 멱살봇 ({st.session_state.selected_mode})</div>', unsafe_allow_html=True)
+    
+    # 채팅 영역
+    st.markdown('<div class="chat-area">', unsafe_allow_html=True)
+    
+    # 메시지 출력
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            if message["role"] == "assistant":
-                # 어시스턴트 메시지에 특별한 스타일 적용
-                st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
-            else:
-                # 사용자 메시지
-                st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
+        if message["role"] == "user":
+            st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
     
     st.markdown('</div>', unsafe_allow_html=True)
+    
+    # 채팅 입력창
+    if prompt := st.chat_input("💀 멱살잡힐 각오로 입력하세요"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.rerun()
+    
+    # Assistant 응답 생성
+    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+        # 모드별 시스템 프롬프트 조정
+        mode_instruction = ""
+        if st.session_state.selected_mode == "살벌모드":
+            mode_instruction = "디스 레벨을 살벌하게 디스하기로 설정하고, "
+        elif st.session_state.selected_mode == "자아성찰":
+            mode_instruction = "자아성찰 모드로 약간 부드럽게 접근하면서, "
+        elif st.session_state.selected_mode == "ROI분석":
+            mode_instruction = "ROI 분석 모드로 투자 대비 수익률 관점에서, "
+        elif st.session_state.selected_mode == "가짜격려":
+            mode_instruction = "가짜 격려 모드로 진심 없는 격려를 섞어서, "
+        
+        messages = [{"role": "system", "content": mode_instruction + system_prompt}]
+        messages += st.session_state.messages
+        
+        try:
+            with st.spinner('멱살봇이 생각 중...'):
+                stream = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=messages,
+                    temperature=0.9,
+                    stream=True,
+                )
+                
+                response = ""
+                response_placeholder = st.empty()
+                
+                for chunk in stream:
+                    if chunk.choices[0].delta.content is not None:
+                        response += chunk.choices[0].delta.content
+                        response_placeholder.markdown(f'<div class="assistant-message">{response}<span class="loading-dots"> ●●●</span></div>', unsafe_allow_html=True)
+                
+                response_placeholder.markdown(f'<div class="assistant-message">{response}</div>', unsafe_allow_html=True)
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                st.rerun()
+                
+        except Exception as e:
+            st.error(f"❌ 오류 발생: {str(e)}")
+            st.markdown("🚨 API 키나 네트워크를 확인해주세요!")
+
 else:
-    # 메시지가 없을 때는 간단한 안내 메시지
-    st.markdown('<div style="text-align: center; padding: 2rem; color: #78909c;">💬 대화를 시작해보세요!</div>', unsafe_allow_html=True)
-        
-# 채팅 입력창
-if prompt := st.chat_input("💀 대화 입력 (멱살잡힐 각오 OK?) 💀"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(f'<div class="user-message">{prompt}</div>', unsafe_allow_html=True)
-
-# assistant 응답 생성(마지막 메시지가 user일 때만 실행)
-if "messages" in st.session_state and st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-    # 메시지 전체 + 시스템 프롬프트 맨 앞에 삽입
-    messages = [{"role": "system", "content": system_prompt}]
-    messages += [
-        {"role": m["role"], "content": m["content"]}
-        for m in st.session_state.messages
-    ]
-    
-    try:
-        stream = client.chat.completions.create(
-            model="gpt-4o",  # 실제 지원되는 모델명으로 변경
-            messages=messages,
-            temperature=0.9,
-            stream=True,
-        )
-        with st.chat_message("assistant"):
-            response_placeholder = st.empty()
-            response = ""
-            
-            # 스트리밍 응답 처리
-            for chunk in stream:
-                if chunk.choices[0].delta.content is not None:
-                    response += chunk.choices[0].delta.content
-                    # 실시간으로 응답 업데이트
-                    response_placeholder.markdown(f'<div class="assistant-message">{response}<span class="loading-dots"> ●●●</span></div>', unsafe_allow_html=True)
-            
-            # 최종 응답 (로딩 점 제거)
-            response_placeholder.markdown(f'<div class="assistant-message">{response}</div>', unsafe_allow_html=True)
-            
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        
-    except Exception as e:
-        st.error(f"❌ API 호출 중 오류가 발생했습니다: {str(e)}")
-        st.markdown("""
-        <div class="warning-box">
-            🚨 API 키를 다시 확인해주세요! 
-            혹시 잘못된 키를 입력하셨거나, OpenAI 계정에 크레딧이 부족할 수 있습니다.
-        </div>
-        """, unsafe_allow_html=True)
-
-# 사용 팁
-with st.expander("💡 사용 팁 & 주의사항"):
+    # 초기 환영 화면
     st.markdown("""
-    **🎯 효과적인 사용법:**
-    - 구체적인 사업 아이디어나 현재 상황을 자세히 설명하세요
-    - "디스 레벨"이나 특수 모드를 활용해보세요
-    - 감정적으로 받아들이지 말고 건설적인 피드백으로 활용하세요
-    
-    **⚠️ 주의사항:**
-    - 이 봇은 '독설'이 컨셉입니다. 진지하게 받아들이지 마세요
-    - 실제 비즈니스 결정은 전문가와 상의하세요
-    - API 사용량에 따라 비용이 발생할 수 있습니다
-    
-    **🔧 특수 기능 설명:**
-    - **살벌 모드**: 더욱 강도 높은 피드백
-    - **자아성찰 모드**: 봇이 스스로를 돌아보는 모드
-    - **ROI 분석**: 투자 대비 수익률 관점에서 분석
-    - **가짜 격려**: 진심 없는 격려 멘트 제공
-    """)
+    <div style="text-align: center; padding: 3rem;">
+        <h2>💀 뼈 때려주는 멱살 파트너봇 💀</h2>
+        <p style="color: #666; margin: 2rem 0;">
+            <strong>위트 있는 공격성</strong>과 <strong>현실 타파 조언</strong>을 동시에 제공해,<br>
+            당신의 아이디어를 멱살 잡고 한 단계 업그레이드시키는 서포터봇입니다.
+        </p>
+        <p style="color: #ff5722; font-weight: bold;">⚠️ 각오 없이는 들어오지 마세요 ⚠️</p>
+        <p style="color: #999; font-size: 0.9rem;">왼쪽에서 API 키 입력과 모드를 선택해주세요</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# 푸터
-st.markdown("""
-<div class="footer">
-    <p>💀 뼈 때려주는 멱살 파트너봇 v1.0 💀</p>
-    <p><small>⚠️ 이 봇의 조언은 엔터테인먼트 목적입니다. 실제 비즈니스 결정은 신중하게 하세요! ⚠️</small></p>
-</div>
-""", unsafe_allow_html=True)
-
-# 메인 컨테이너 종료
+st.markdown('</div>', unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
