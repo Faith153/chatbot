@@ -437,15 +437,17 @@ st.markdown("---")
 st.markdown("### 💬 대화 구역")
 
 # 메시지가 있을 때만 채팅 컨테이너 생성
-if st.session_state.messages:
+if "messages" in st.session_state and st.session_state.messages:
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     
     # 채팅 메시지 출력
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant":
+                # 어시스턴트 메시지에 특별한 스타일 적용
                 st.markdown(f'<div class="assistant-message">{message["content"]}</div>', unsafe_allow_html=True)
             else:
+                # 사용자 메시지
                 st.markdown(f'<div class="user-message">{message["content"]}</div>', unsafe_allow_html=True)
     
     st.markdown('</div>', unsafe_allow_html=True)
