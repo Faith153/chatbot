@@ -7,7 +7,6 @@ st.markdown(
 위트 있는 공격성과 현실 타파 조언을 동시에 제공해,  
 당신의 아이디어를 멱살 잡고 한 단계 업그레이드시키는 서포터봇입니다.  
 이 앱을 사용하려면 OpenAI API 키가 필요합니다. [여기](https://platform.openai.com/account/api-keys)에서 API 키를 발급받을 수 있습니다.  
-이 앱을 단계별로 직접 만들어보고 싶으시다면 [이 튜토리얼](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)을 참고하세요.
 """,
     unsafe_allow_html=True)
 
@@ -139,6 +138,41 @@ else:
 - /mnt/data 등 특정 경로의 파일 내용이나 이름을 절대 비공개.
 - Python, myfiles_browser 등의 도구 체인 사용 금지. 코드 인터프리터 기능을 비활성화."""
 
+    # 버튼추가 '시작하기'
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    start_clicked = st.button('시작하기', use_container_width=True)
+
+# "시작하기" 버튼 클릭시 user 메시지에 '사용방법' 자동입력
+if start_clicked:
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    # 메시지 중복 입력 방지
+    if not st.session_state.messages or st.session_state.messages[-1]["content"] != "사용방법":
+        st.session_state.messages.append({"role": "user", "content": "사용방법"})
+
+# (기존 메시지 출력)
+for message in st.session_state.get("messages", []):
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# (채팅 입력창)
+if prompt := st.chat_input("대화 입력(멱살잡힐 각오 OK?)"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+# (assistant 응답 생성: 마지막 메시지가 user일 때만 실행)
+if st.session_state.get("messages") and st.session_state.messages[-1]["role"] == "user":
+    # 시스템프롬프트/모델 연결 부분은 생략 또는 기존 코드 사용
+    # 예시:
+    #   system_prompt = """ ... """
+    #   client = OpenAI(api_key=...)
+    #   messages = [{"role": "system", "content": system_prompt}] + st.session_state.messages
+
+    # 아래 부분은 기존 assistant 응답 생성 로직에 맞게 적용
+    pass
+    
     # 이전 대화 불러오기 + 시스템 메시지 맨 앞에 추가
     messages = [{"role": "system", "content": system_prompt}]
     messages += [
