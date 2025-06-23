@@ -6,7 +6,7 @@ import re
 
 # 페이지 설정
 st.set_page_config(
-    page_title="뼈 때려주는 멱살 파트너봇",
+    page_title="뼈 때려주는 아이디어 확장봇",
     page_icon="💀",
     layout="wide",
     initial_sidebar_state="collapsed"
