@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 커스텀 CSS 스타일 (대폭 개선)
+# CSS 스타일 / 클로드 인포그래픽 활용
 st.markdown("""
 <style>
     /* 전체 배경 및 기본 설정 */
